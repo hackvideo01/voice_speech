@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phòng Thu — Gemini TTS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --console:#15181F;      /* thân bàn trộn */
+    --panel:#1D222C;        /* mặt panel */
+    --panel-2:#252B37;
+    --line:#333B4A;
+    --text:#E7EAF0;
+    --muted:#8D97A8;
+    --vu:#F2B33D;           /* kim VU */
+    --rec:#E5484D;          /* đèn thu */
+    --play:#5FD3C4;         /* tín hiệu phát */
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:
+      radial-gradient(1100px 500px at 78% -10%, #23293580, transparent 70%),
+      var(--console);
+    color:var(--text);
+    font-family:"Be Vietnam Pro",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+
+  /* ---------- thanh trên: đèn ON AIR + khoá API ---------- */
+  header{display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .lamp{width:11px;height:11px;border-radius:50%;background:#3A2222;
+    box-shadow:inset 0 0 0 1px #000;transition:.3s}
+  .lamp.on{background:var(--rec);box-shadow:0 0 14px var(--rec)}
+  h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-.2px}
+  h1 small{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);font-weight:500;font-family:"IBM Plex Mono",monospace}
+  .key{display:flex;gap:8px;align-items:center}
+  input[type=password],input[type=text],textarea,select{
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none}
+  input:focus,textarea:focus,select:focus{border-color:var(--vu);box-shadow:0 0 0 3px #f2b33d22}
+  .key input{width:270px;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+  a{color:var(--vu)}
+
+  /* ---------- lưới ---------- */
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+
+  /* ---------- công tắc chế độ ---------- */
+  .modes{display:flex;gap:6px;background:var(--console);border:1px solid var(--line);
+    border-radius:8px;padding:4px;margin-bottom:18px;width:fit-content}
+  .modes button{background:none;border:0;color:var(--muted);padding:7px 14px;border-radius:6px;
+    font:600 13px/1 "Be Vietnam Pro",sans-serif;cursor:pointer}
+  .modes button[aria-pressed=true]{background:var(--panel-2);color:var(--text);
+    box-shadow:inset 0 0 0 1px var(--line)}
+
+  textarea{width:100%;resize:vertical;line-height:1.6}
+  #style{min-height:96px}
+  #script{min-height:180px}
+  .field{margin-bottom:16px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tag{background:var(--console);border:1px solid var(--line);color:var(--muted);
+    border-radius:999px;padding:4px 10px;font:500 11.5px/1.4 "IBM Plex Mono",monospace;cursor:pointer}
+  .tag:hover{border-color:var(--vu);color:var(--vu)}
+
+  /* ---------- giá đỡ giọng ---------- */
+  .speaker{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--console)}
+  .speaker .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  select{width:100%}
+  .count{float:right;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+
+  /* ---------- nghe thử giọng ---------- */
+  .voice-row{display:flex;gap:8px;align-items:center}
+  .voice-row select{width:auto;flex:1;min-width:0}
+  .preview-btn{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--play);font-size:13px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:.15s}
+  .preview-btn:hover{border-color:var(--play);box-shadow:0 0 0 3px #5fd3c422}
+  .preview-btn:disabled{opacity:.5;cursor:progress}
+
+  /* ---------- nút thu ---------- */
+  .rec{width:100%;margin-top:6px;background:var(--vu);color:#171310;border:0;border-radius:8px;
+    padding:14px;font:800 15px/1 "Be Vietnam Pro",sans-serif;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px}
+  .rec:hover{filter:brightness(1.08)}
+  .rec:disabled{opacity:.5;cursor:progress}
+
+  /* ---------- VU meter (điểm nhấn) ---------- */
+  .vu{display:flex;align-items:flex-end;gap:3px;height:56px;margin:18px 0 10px;
+    padding:8px 10px;background:var(--console);border:1px solid var(--line);border-radius:8px}
+  .vu i{flex:1;background:linear-gradient(180deg,var(--rec),var(--vu) 45%,var(--play));
+    border-radius:2px;height:2px;opacity:.35;transition:height .07s linear}
+  audio{width:100%;margin-top:10px;filter:invert(.92) hue-rotate(180deg)}
+
+  .take{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;
+    display:flex;align-items:center;gap:10px;background:var(--console)}
+  .take b{font:600 12.5px/1 "IBM Plex Mono",monospace;color:var(--text)}
+  .take span{font-size:11.5px;color:var(--muted);margin-right:auto}
+  .take a{font:600 11.5px/1 "IBM Plex Mono",monospace;text-decoration:none}
+
+  .err{border:1px solid var(--rec);background:#e5484d14;color:#FFB4B6;
+    border-radius:8px;padding:12px;font-size:13px;line-height:1.55;margin-top:14px;word-break:break-word}
+  .err b{color:#fff;display:block;margin-bottom:4px}
+
+  @media (max-width:880px){.grid{grid-template-columns:1fr}.key input{width:180px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="lamp" id="lamp"></span>
+      <h1>Phòng Thu Giọng Nói<small>Gemini TTS · 30 giọng · 40+ ngôn ngữ</small></h1>
+    </div>
+    <div class="key">
+      <label class="label" style="margin:0" for="apikey">API key</label>
+      <input id="apikey" type="password" placeholder="AIza…" autocomplete="off">
+      <a class="mono" style="font-size:11.5px" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key ↗</a>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- CỘT TRÁI: KỊCH BẢN -->
+    <section class="card">
+      <div class="modes" role="group" aria-label="Chế độ">
+        <button id="m-single" aria-pressed="true">Một giọng</button>
+        <button id="m-multi" aria-pressed="false">Hội thoại 2 giọng</button>
+      </div>
+
+      <div class="field">
+        <label class="label" for="style">Chỉ đạo diễn xuất — phong cách, cảm xúc, tốc độ, giọng vùng miền</label>
+        <textarea id="style" placeholder="Đọc bằng giọng ấm áp, chậm rãi, như đang kể chuyện đêm khuya trên radio. Giọng Hà Nội chuẩn, ngắt nghỉ rõ ràng."></textarea>
+        <p class="hint">Càng cụ thể càng tốt. Mô tả nhân vật, bối cảnh, nhịp điệu — model sẽ diễn theo.</p>
+      </div>
+
+      <div class="field">
+        <label class="label" for="script">Lời thoại <span class="count" id="count">0 ký tự</span></label>
+        <textarea id="script" placeholder="Xin chào, đây là giọng nói được tạo bằng Gemini."></textarea>
+        <div class="tags" id="tags"></div>
+        <p class="hint">Thẻ trong ngoặc vuông điều khiển cách đọc từng đoạn. Dùng thẻ tiếng Anh cho kết quả tốt nhất, kể cả khi lời thoại là tiếng Việt.</p>
+      </div>
+
+      <div id="err"></div>
+    </section>
+
+    <!-- CỘT PHẢI: BÀN ĐIỀU KHIỂN -->
+    <aside class="card">
+      <div class="field">
+        <label class="label" for="model">Model</label>
+        <select id="model">
+          <option value="gemini-2.5-flash-preview-tts">2.5 Flash TTS — nhanh, rẻ</option>
+          <option value="gemini-2.5-pro-preview-tts">2.5 Pro TTS — chất lượng cao</option>
+          <option value="gemini-3.1-flash-tts-preview">3.1 Flash TTS — mới nhất</option>
+        </select>
+      </div>
+
+      <label class="label">Giọng</label>
+      <div id="speakers"></div>
+
+      <button class="rec" id="go"><span class="lamp" style="background:#171310"></span> Thu giọng</button>
+
+      <div class="vu" id="vu" aria-hidden="true"></div>
+      <audio id="player" controls></audio>
+
+      <div id="takes"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ============ 30 giọng dựng sẵn của Gemini TTS ============ */
+const VOICES = [
+  ["Zephyr","Sáng"],["Puck","Lạc quan"],["Charon","Cung cấp thông tin"],["Kore","Chắc chắn"],
+  ["Fenrir","Dễ kích động"],["Leda","Trẻ trung"],["Orus","Chắc chắn"],["Aoede","Nhẹ nhàng"],
+  ["Callirrhoe","Thoải mái"],["Autonoe","Sáng"],["Enceladus","Thều thào"],["Iapetus","Trong trẻo"],
+  ["Umbriel","Thoải mái"],["Algieba","Mượt"],["Despina","Mượt"],["Erinome","Trong trẻo"],
+  ["Algenib","Khàn"],["Rasalgethi","Cung cấp thông tin"],["Laomedeia","Lạc quan"],["Achernar","Dịu"],
+  ["Alnilam","Chắc chắn"],["Schedar","Đều"],["Gacrux","Chững chạc"],["Pulcherrima","Tiến tới"],
+  ["Achird","Thân thiện"],["Zubenelgenubi","Đời thường"],["Vindemiatrix","Êm ái"],["Sadachbia","Sôi nổi"],
+  ["Sadaltager","Uyên bác"],["Sulafat","Ấm"]
+];
+const TAGS = ["[whispers]","[laughs]","[sighs]","[excited]","[serious]","[tired]","[shouting]","[very fast]","[very slow]","[curious]"];
+
+const $ = id => document.getElementById(id);
+let mode = "single";
+
+/* ---- giá đỡ giọng ---- */
+function voiceSelect(id, def){
+  return `<div class="voice-row">
+    <select id="${id}">` + VOICES.map(([v,d]) =>
+      `<option value="${v}"${v===def?" selected":""}>${v} — ${d}</option>`).join("") + `</select>
+    <button type="button" class="preview-btn" data-target="${id}" title="Nghe thử giọng này">▶</button>
+  </div>`;
+}
+function renderSpeakers(){
+  $("speakers").innerHTML = mode === "single"
+    ? `<div class="speaker">${voiceSelect("v1","Sulafat")}</div>`
+    : `<div class="speaker"><label class="label">Người nói 1</label>
+         <div class="row"><input type="text" id="s1" value="An"><span></span></div>
+         <div style="margin-top:8px">${voiceSelect("v1","Kore")}</div></div>
+       <div class="speaker"><label class="label">Người nói 2</label>
+         <div class="row"><input type="text" id="s2" value="Bình"><span></span></div>
+         <div style="margin-top:8px">${voiceSelect("v2","Puck")}</div></div>`;
+}
+renderSpeakers();
+
+/* ---- nghe thử giọng ---- */
+$("speakers").addEventListener("click", e => {
+  const btn = e.target.closest(".preview-btn");
+  if(!btn) return;
+  const sel = $(btn.dataset.target);
+  previewVoice(sel.value, btn);
+});
+$("speakers").addEventListener("change", e => {
+  if(e.target.tagName !== "SELECT") return;
+  const btn = e.target.parentElement.querySelector(".preview-btn");
+  if(btn && previewBtnActive === btn){
+    if(previewAudio) previewAudio.pause();
+    resetPreviewBtn(btn);
+  }
+});
+
+$("m-single").onclick = () => setMode("single");
+$("m-multi").onclick  = () => setMode("multi");
+function setMode(m){
+  mode = m;
+  $("m-single").setAttribute("aria-pressed", m==="single");
+  $("m-multi").setAttribute("aria-pressed", m==="multi");
+  renderSpeakers();
+  $("script").placeholder = m==="single"
+    ? "Xin chào, đây là giọng nói được tạo bằng Gemini."
+    : "An: Cuối tuần này cậu rảnh không?\nBình: [laughs] Rảnh chứ! Đi đâu đây?";
+}
+
+/* ---- thẻ âm thanh ---- */
+$("tags").innerHTML = TAGS.map(t => `<button class="tag" data-t="${t}">${t}</button>`).join("");
+$("tags").onclick = e => {
+  const t = e.target.dataset.t; if(!t) return;
+  const el = $("script"), i = el.selectionStart;
+  el.value = el.value.slice(0,i) + t + " " + el.value.slice(el.selectionEnd);
+  el.focus(); el.selectionStart = el.selectionEnd = i + t.length + 1;
+  updateCount();
+};
+$("script").oninput = updateCount;
+function updateCount(){ $("count").textContent = $("script").value.length + " ký tự"; }
+
+/* ============ PCM 16-bit → WAV ============ */
+function pcmToWav(pcm, rate=24000, channels=1){
+  const buf = new ArrayBuffer(44 + pcm.length), dv = new DataView(buf);
+  const str = (o,s) => [...s].forEach((c,i) => dv.setUint8(o+i, c.charCodeAt(0)));
+  str(0,"RIFF"); dv.setUint32(4, 36+pcm.length, true); str(8,"WAVEfmt ");
+  dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,channels,true);
+  dv.setUint32(24,rate,true); dv.setUint32(28,rate*channels*2,true);
+  dv.setUint16(32,channels*2,true); dv.setUint16(34,16,true);
+  str(36,"data"); dv.setUint32(40,pcm.length,true);
+  new Uint8Array(buf,44).set(pcm);
+  return new Blob([buf], {type:"audio/wav"});
+}
+const b64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+/* ---- tìm khối audio trong JSON trả về (đúng cho cả 2 kiểu endpoint) ---- */
+function findAudio(node){
+  if(!node || typeof node !== "object") return null;
+  const mime = node.mimeType || node.mime_type || "";
+  if(typeof node.data === "string" && (!mime || /audio|pcm|L16/i.test(mime))) return {data:node.data, mime};
+  for(const k in node){ const hit = findAudio(node[k]); if(hit) return hit; }
+  return null;
+}
+
+/* ============ dựng request cho API TTS ============ */
+function buildRequest(model, prompt, mode, v1, v2, s1, s2){
+  let url, body;
+  if(model.startsWith("gemini-3")){                       // Interactions API
+    url = "https://generativelanguage.googleapis.com/v1beta/interactions";
+    body = { model, input: prompt, response_format:{type:"audio"},
+      generation_config:{ speech_config: mode==="single"
+        ? [{voice:v1}] : [{speaker:s1, voice:v1},{speaker:s2, voice:v2}] } };
+  } else {                                                // generateContent API
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    body = { contents:[{parts:[{text:prompt}]}],
+      generationConfig:{ responseModalities:["AUDIO"], speechConfig: mode==="single"
+        ? { voiceConfig:{ prebuiltVoiceConfig:{ voiceName:v1 } } }
+        : { multiSpeakerVoiceConfig:{ speakerVoiceConfigs:[
+            { speaker:s1, voiceConfig:{ prebuiltVoiceConfig:{ voiceName:v1 } } },
+            { speaker:s2, voiceConfig:{ prebuiltVoiceConfig:{ voiceName:v2 } } } ] } } } };
+  }
+  return {url, body};
+}
+
+async function fetchAudio(key, url, body){
+  const res = await fetch(url, { method:"POST",
+    headers:{ "Content-Type":"application/json", "x-goog-api-key":key },
+    body: JSON.stringify(body) });
+  const json = await res.json();
+  if(!res.ok) throw new Error(json?.error?.message || `HTTP ${res.status}`);
+  const audio = findAudio(json);
+  if(!audio) throw new Error("Model không trả về audio. Thường do lời thoại quá mơ hồ hoặc bị chặn bởi bộ lọc nội dung — thêm câu dẫn rõ ràng rồi thử lại.");
+  const rate = parseInt((audio.mime.match(/rate=(\d+)/)||[])[1] || 24000, 10);
+  return pcmToWav(b64ToBytes(audio.data), rate);
+}
+
+/* ============ gọi API ============ */
+async function generate(){
+  const key = $("apikey").value.trim();
+  const script = $("script").value.trim();
+  const style = $("style").value.trim();
+  const model = $("model").value;
+  $("err").innerHTML = "";
+
+  if(!key)    return fail("Chưa có API key", "Dán key từ aistudio.google.com/apikey vào ô phía trên.");
+  if(!script) return fail("Chưa có lời thoại", "Nhập nội dung cần đọc rồi bấm Thu giọng.");
+
+  const prompt = (style ? style + "\n\n" : "") +
+    (mode === "multi" ? "Đọc đoạn hội thoại sau:\n" : "") + script;
+
+  const v1 = $("v1").value, v2 = mode==="multi" ? $("v2").value : null;
+  const s1 = mode==="multi" ? ($("s1").value.trim()||"Speaker 1") : null;
+  const s2 = mode==="multi" ? ($("s2").value.trim()||"Speaker 2") : null;
+
+  const { url, body } = buildRequest(model, prompt, mode, v1, v2, s1, s2);
+
+  setBusy(true);
+  try{
+    const blob = await fetchAudio(key, url, body);
+    play(blob);
+  }catch(e){
+    fail("Không thu được", e.message);
+  }finally{
+    setBusy(false);
+  }
+}
+
+/* ---- nghe thử một giọng, không lưu vào danh sách take ---- */
+const previewCache = new Map();
+let previewAudio = null;
+let previewBtnActive = null;
+const PREVIEW_SAMPLE = "Xin chào, đây là giọng đọc mẫu.";
+
+function resetPreviewBtn(btn){
+  btn.textContent = "▶";
+  if(previewBtnActive === btn){ previewAudio = null; previewBtnActive = null; }
+}
+function playPreview(url, btn){
+  previewAudio = new Audio(url);
+  previewBtnActive = btn;
+  btn.textContent = "◼";
+  previewAudio.onended = () => resetPreviewBtn(btn);
+  previewAudio.play().catch(()=>{});
+}
+async function previewVoice(voice, btn){
+  const key = $("apikey").value.trim();
+  if(!key) return fail("Chưa có API key", "Dán key từ aistudio.google.com/apikey vào ô phía trên để nghe thử giọng.");
+
+  if(previewBtnActive === btn && previewAudio && !previewAudio.paused){
+    previewAudio.pause();
+    resetPreviewBtn(btn);
+    return;
+  }
+  if(previewAudio) previewAudio.pause();
+  if(previewBtnActive) resetPreviewBtn(previewBtnActive);
+
+  const cacheKey = `${$("model").value}|${voice}`;
+  const cached = previewCache.get(cacheKey);
+  if(cached) return playPreview(cached, btn);
+
+  $("err").innerHTML = "";
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "…";
+  try{
+    const { url, body } = buildRequest($("model").value, PREVIEW_SAMPLE, "single", voice, null, null, null);
+    const blob = await fetchAudio(key, url, body);
+    const blobUrl = URL.createObjectURL(blob);
+    previewCache.set(cacheKey, blobUrl);
+    playPreview(blobUrl, btn);
+  }catch(e){
+    fail("Không nghe thử được", e.message);
+    btn.textContent = original;
+  }finally{
+    btn.disabled = false;
+  }
+}
+function fail(title, msg){ $("err").innerHTML = `<div class="err"><b>${title}</b>${msg}</div>`; }
+function setBusy(b){
+  $("go").disabled = b;
+  $("lamp").classList.toggle("on", b);
+  $("go").lastChild.textContent = b ? " Đang thu…" : " Thu giọng";
+}
+
+/* ---- phát + lưu take ---- */
+let takeNo = 0;
+function play(blob){
+  const url = URL.createObjectURL(blob);
+  $("player").src = url;
+  $("player").play().catch(()=>{});
+  takeNo++;
+  const name = `take-${String(takeNo).padStart(2,"0")}.wav`;
+  const div = document.createElement("div");
+  div.className = "take";
+  div.innerHTML = `<b>${name}</b><span>${$("v1").value}${mode==="multi" ? " + "+$("v2").value : ""}</span>
+    <a href="${url}" download="${name}">Tải ↓</a>`;
+  $("takes").prepend(div);
+}
+$("go").onclick = generate;
+
+/* ============ VU meter — tín hiệu thật từ file đang phát ============ */
+const BARS = 28;
+$("vu").innerHTML = "<i></i>".repeat(BARS);
+const bars = [...$("vu").children];
+let ctx, analyser;
+$("player").onplay = () => {
+  if(!ctx){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource($("player"));
+    analyser = ctx.createAnalyser(); analyser.fftSize = 128;
+    src.connect(analyser); analyser.connect(ctx.destination);
+  }
+  ctx.resume(); draw();
+};
+function draw(){
+  if($("player").paused){ bars.forEach(b => { b.style.height="2px"; b.style.opacity=.35; }); return; }
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  bars.forEach((b,i) => {
+    const v = data[Math.floor(i * data.length / BARS)] / 255;
+    b.style.height = Math.max(2, v * 40) + "px";
+    b.style.opacity = .35 + v * .65;
+  });
+  requestAnimationFrame(draw);
+}
+</script>
+</body>
+</html>
