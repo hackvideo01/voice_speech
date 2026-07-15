@@ -98,6 +98,25 @@
   .help-body code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;background:var(--panel-2);
     border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--play)}
 
+  /* ---------- prompt đã lưu ---------- */
+  .prompts-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+  .save-prompt-btn{background:none;border:1px solid var(--line);color:var(--play);border-radius:6px;
+    padding:6px 10px;font:600 11.5px "IBM Plex Mono",monospace;cursor:pointer;white-space:nowrap}
+  .save-prompt-btn:hover{border-color:var(--play);background:#5fd3c414}
+  .saved-prompts{display:flex;flex-direction:column;gap:8px}
+  .saved-prompt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--console);
+    display:flex;align-items:center;gap:10px}
+  .saved-prompt .info{flex:1;min-width:0}
+  .saved-prompt b{display:block;font:600 12.5px "Be Vietnam Pro",sans-serif;color:var(--text);
+    margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .saved-prompt .preview{display:block;font-size:11.5px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .saved-prompt .actions{display:flex;gap:6px;flex:none}
+  .saved-prompt .actions button{background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:6px;padding:5px 9px;font:600 11px "IBM Plex Mono",monospace;cursor:pointer}
+  .saved-prompt .use:hover{border-color:var(--play);color:var(--play)}
+  .saved-prompt .del:hover{border-color:var(--rec);color:var(--rec)}
+
   /* ---------- giá đỡ giọng ---------- */
   .speaker{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--console)}
   .speaker .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -147,6 +166,34 @@
   .take b{font:600 12.5px/1 "IBM Plex Mono",monospace;color:var(--text)}
   .take span{font-size:11.5px;color:var(--muted);margin-right:auto}
   .take a{font:600 11.5px/1 "IBM Plex Mono",monospace;text-decoration:none}
+  .take-cost{font:600 11.5px/1 "IBM Plex Mono",monospace!important;color:var(--vu)!important;
+    white-space:nowrap;margin-right:0!important}
+
+  /* ---------- cấu hình giá ---------- */
+  .price-row{display:grid;grid-template-columns:1fr 64px 64px;gap:8px;align-items:center;margin-top:8px}
+  .price-row span{font-size:12px;color:var(--muted)}
+  .price-row input[type=number]{width:100%;padding:6px 8px;font-size:12px;text-align:right;
+    font-family:"IBM Plex Mono",monospace}
+  .price-row-head span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .price-fx{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+
+  /* ---------- lịch sử chi phí ---------- */
+  .ledger{border:1px solid var(--line);border-radius:8px;margin-top:14px;background:var(--console);overflow:hidden}
+  .ledger-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;
+    border-bottom:1px solid var(--line)}
+  .ledger-total{font-size:12.5px;color:var(--vu);font-weight:700;font-family:"IBM Plex Mono",monospace}
+  #ledger{max-height:220px;overflow-y:auto}
+  .ledger-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
+    padding:8px 12px;border-bottom:1px solid var(--line);font-size:11px}
+  .ledger-row:last-child{border-bottom:0}
+  .ledger-time{color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+  .ledger-voice{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ledger-tok{color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+  .ledger-cost{color:var(--vu);font-weight:700;white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+  .ledger-foot{display:flex;flex-direction:column;gap:8px;padding:10px 12px}
+  .ledger-clear{align-self:flex-start;background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:6px;padding:5px 10px;font:500 11.5px "IBM Plex Mono",monospace;cursor:pointer}
+  .ledger-clear:hover{border-color:var(--rec);color:var(--rec)}
 
   .err{border:1px solid var(--rec);background:#e5484d14;color:#FFB4B6;
     border-radius:8px;padding:12px;font-size:13px;line-height:1.55;margin-top:14px;word-break:break-word}
@@ -223,6 +270,14 @@ Cậu kể chuyện đó <span class="t">[laughs]</span> buồn cười thật �
         </details>
       </div>
 
+      <div class="field">
+        <div class="prompts-head">
+          <label class="label" style="margin:0">Prompt đã lưu</label>
+          <button type="button" class="save-prompt-btn" id="savePrompt">＋ Lưu prompt hiện tại</button>
+        </div>
+        <div id="savedPrompts" class="saved-prompts"></div>
+      </div>
+
       <div id="err"></div>
     </section>
 
@@ -236,6 +291,34 @@ Cậu kể chuyện đó <span class="t">[laughs]</span> buồn cười thật �
           <option value="gemini-3.1-flash-tts-preview">3.1 Flash TTS — mới nhất</option>
         </select>
       </div>
+
+      <details class="help">
+        <summary>Cấu hình giá & tỉ giá</summary>
+        <div class="help-body">
+          <p class="intro">Chi phí mỗi lượt được tính từ số token thực (API trả về) nhân đơn giá bên dưới. Giá mặc định chỉ là ước tính tham khảo — kiểm tra và chỉnh lại theo bảng giá mới nhất tại <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener">ai.google.dev/pricing</a> nếu Google thay đổi.</p>
+          <div class="price-row price-row-head"><span></span><span>Vào $/1M</span><span>Ra $/1M</span></div>
+          <div class="price-row" data-model="gemini-2.5-flash-preview-tts">
+            <span>2.5 Flash TTS</span>
+            <input type="number" class="price-in" step="0.01" min="0">
+            <input type="number" class="price-out" step="0.01" min="0">
+          </div>
+          <div class="price-row" data-model="gemini-2.5-pro-preview-tts">
+            <span>2.5 Pro TTS</span>
+            <input type="number" class="price-in" step="0.01" min="0">
+            <input type="number" class="price-out" step="0.01" min="0">
+          </div>
+          <div class="price-row" data-model="gemini-3.1-flash-tts-preview">
+            <span>3.1 Flash TTS</span>
+            <input type="number" class="price-in" step="0.01" min="0">
+            <input type="number" class="price-out" step="0.01" min="0">
+          </div>
+          <div class="price-row price-fx">
+            <span>Tỉ giá USD → VND</span>
+            <input type="number" id="fxRate" step="100" min="0">
+            <span></span>
+          </div>
+        </div>
+      </details>
 
       <label class="label">Giọng</label>
       <div id="speakers"></div>
@@ -256,6 +339,18 @@ Cậu kể chuyện đó <span class="t">[laughs]</span> buồn cười thật �
       <audio id="player" controls></audio>
 
       <div id="takes"></div>
+
+      <div class="ledger">
+        <div class="ledger-head">
+          <span class="label" style="margin:0">Lịch sử chi phí</span>
+          <span class="ledger-total" id="costTotal">—</span>
+        </div>
+        <div id="ledger"></div>
+        <div class="ledger-foot">
+          <button type="button" class="ledger-clear" id="clearHistory">Xoá lịch sử</button>
+          <p class="hint" style="margin:0">Tính từ token thực API trả về; lưu trên máy này (localStorage), không đồng bộ qua thiết bị khác.</p>
+        </div>
+      </div>
     </aside>
   </div>
 </div>
@@ -337,6 +432,79 @@ $("tags").onclick = e => {
 $("script").oninput = updateCount;
 function updateCount(){ $("count").textContent = $("script").value.length + " ký tự"; }
 
+/* ============ prompt đã lưu ============ */
+const PROMPTS_KEY = "tts_saved_prompts_v1";
+function loadPrompts(){ try{ return JSON.parse(localStorage.getItem(PROMPTS_KEY) || "[]"); }catch{ return []; } }
+function savePromptsToStorage(){ localStorage.setItem(PROMPTS_KEY, JSON.stringify(savedPrompts)); }
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+let savedPrompts = loadPrompts();
+
+function renderSavedPrompts(){
+  $("savedPrompts").innerHTML = savedPrompts.length ? savedPrompts.map((p,i) => `
+    <div class="saved-prompt">
+      <div class="info">
+        <b>${escapeHtml(p.name)}</b>
+        <span class="preview">${escapeHtml(p.script.slice(0,90))}</span>
+      </div>
+      <div class="actions">
+        <button type="button" class="use" data-i="${i}">Dùng</button>
+        <button type="button" class="del" data-i="${i}">Xoá</button>
+      </div>
+    </div>`).join("") : `<p class="hint" style="margin:0">Chưa lưu prompt nào — điền nội dung rồi bấm "Lưu prompt hiện tại".</p>`;
+}
+renderSavedPrompts();
+
+$("savePrompt").onclick = () => {
+  const script = $("script").value.trim();
+  const style = $("style").value.trim();
+  if(!script) return fail("Chưa có lời thoại", "Nhập lời thoại trước khi lưu prompt.");
+
+  const name = window.prompt("Đặt tên cho prompt này:", script.slice(0,30));
+  if(!name || !name.trim()) return;
+
+  savedPrompts.unshift({
+    name: name.trim(), style, script, mode,
+    v1: $("v1") ? $("v1").value : null,
+    v2: mode==="multi" && $("v2") ? $("v2").value : null,
+    s1: mode==="multi" && $("s1") ? $("s1").value : null,
+    s2: mode==="multi" && $("s2") ? $("s2").value : null,
+    ts: Date.now()
+  });
+  savePromptsToStorage();
+  renderSavedPrompts();
+};
+
+$("savedPrompts").addEventListener("click", e => {
+  const useBtn = e.target.closest(".use");
+  const delBtn = e.target.closest(".del");
+
+  if(useBtn){
+    const p = savedPrompts[+useBtn.dataset.i];
+    if(!p) return;
+    $("style").value = p.style || "";
+    $("script").value = p.script || "";
+    updateCount();
+    if(p.mode && p.mode !== mode) setMode(p.mode);
+    if(p.v1 && $("v1")) $("v1").value = p.v1;
+    if(mode === "multi"){
+      if(p.v2 && $("v2")) $("v2").value = p.v2;
+      if(p.s1 && $("s1")) $("s1").value = p.s1;
+      if(p.s2 && $("s2")) $("s2").value = p.s2;
+    }
+  }
+
+  if(delBtn){
+    const i = +delBtn.dataset.i;
+    if(!confirm(`Xoá prompt "${savedPrompts[i]?.name}"?`)) return;
+    savedPrompts.splice(i, 1);
+    savePromptsToStorage();
+    renderSavedPrompts();
+  }
+});
+
 /* ============ PCM 16-bit → WAV ============ */
 function pcmToWav(pcm, rate=24000, channels=1){
   const buf = new ArrayBuffer(44 + pcm.length), dv = new DataView(buf);
@@ -405,8 +573,84 @@ async function fetchAudio(key, url, body){
   const audio = findAudio(json);
   if(!audio) throw new Error("Model không trả về audio. Thường do lời thoại quá mơ hồ hoặc bị chặn bởi bộ lọc nội dung — thêm câu dẫn rõ ràng rồi thử lại.");
   const rate = parseInt((audio.mime.match(/rate=(\d+)/)||[])[1] || 24000, 10);
-  return pcmToWav(b64ToBytes(audio.data), rate);
+  const blob = pcmToWav(b64ToBytes(audio.data), rate);
+
+  const usage = json.usageMetadata || json.usage_metadata || json.usage || null;
+  const inTok  = usage ? (usage.promptTokenCount ?? usage.prompt_token_count ?? usage.input_tokens ?? 0) : null;
+  const outTok = usage ? (usage.candidatesTokenCount ?? usage.candidates_token_count ?? usage.output_tokens ?? 0) : null;
+  return { blob, inTok, outTok };
 }
+
+/* ============ giá & lịch sử chi phí ============ */
+const DEFAULT_PRICING = {
+  "gemini-2.5-flash-preview-tts": { in: 0.50, out: 10.00 },
+  "gemini-2.5-pro-preview-tts":   { in: 1.00, out: 20.00 },
+  "gemini-3.1-flash-tts-preview": { in: 0.50, out: 10.00 }
+};
+const DEFAULT_FX = 26000;
+const HISTORY_KEY = "tts_cost_history_v1";
+
+function loadPricing(){
+  try{
+    const saved = JSON.parse(localStorage.getItem("tts_pricing_v1") || "{}");
+    const merged = {};
+    for(const m in DEFAULT_PRICING) merged[m] = { ...DEFAULT_PRICING[m], ...(saved[m]||{}) };
+    return merged;
+  }catch{ return { ...DEFAULT_PRICING }; }
+}
+function savePricing(){ localStorage.setItem("tts_pricing_v1", JSON.stringify(pricing)); }
+function loadFx(){ const v = parseFloat(localStorage.getItem("tts_fx_v1")); return Number.isFinite(v) && v>0 ? v : DEFAULT_FX; }
+function saveFx(){ localStorage.setItem("tts_fx_v1", String(fxRate)); }
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }catch{ return []; } }
+function saveHistory(){ localStorage.setItem(HISTORY_KEY, JSON.stringify(costHistory)); }
+
+let pricing = loadPricing();
+let fxRate = loadFx();
+let costHistory = loadHistory();
+
+document.querySelectorAll(".price-row[data-model]").forEach(row => {
+  const m = row.dataset.model, p = pricing[m];
+  const inEl = row.querySelector(".price-in"), outEl = row.querySelector(".price-out");
+  inEl.value = p.in; outEl.value = p.out;
+  inEl.onchange  = () => { pricing[m].in  = parseFloat(inEl.value)  || 0; savePricing(); renderLedger(); };
+  outEl.onchange = () => { pricing[m].out = parseFloat(outEl.value) || 0; savePricing(); renderLedger(); };
+});
+$("fxRate").value = fxRate;
+$("fxRate").onchange = () => { fxRate = parseFloat($("fxRate").value) || DEFAULT_FX; saveFx(); renderLedger(); };
+
+function calcCost(model, inTok, outTok){
+  if(inTok == null || outTok == null) return null;
+  const p = pricing[model] || DEFAULT_PRICING[model] || {in:0,out:0};
+  return (inTok/1e6)*p.in + (outTok/1e6)*p.out;
+}
+function fmtUsd(usd){ return usd==null ? "—" : "$"+usd.toFixed(4); }
+function fmtVnd(usd){ return usd==null ? "—" : Math.round(usd*fxRate).toLocaleString("vi-VN")+"đ"; }
+
+function addHistoryEntry(entry){
+  costHistory.unshift(entry);
+  if(costHistory.length > 300) costHistory.length = 300;
+  saveHistory();
+  renderLedger();
+}
+function renderLedger(){
+  const totalUsd = costHistory.reduce((s,h) => s + (h.costUsd||0), 0);
+  $("costTotal").textContent = costHistory.length ? `${fmtVnd(totalUsd)} · ${fmtUsd(totalUsd)}` : "—";
+  $("ledger").innerHTML = costHistory.length ? costHistory.map(h => `
+    <div class="ledger-row">
+      <span class="ledger-time">${new Date(h.ts).toLocaleString("vi-VN")}</span>
+      <span class="ledger-voice" title="${h.label}">${h.label}</span>
+      <span class="ledger-tok">${h.inTok ?? "?"}→${h.outTok ?? "?"} tok</span>
+      <span class="ledger-cost">${fmtVnd(h.costUsd)}</span>
+    </div>`).join("") : `<p class="hint" style="margin:8px 12px">Chưa có lượt thu nào.</p>`;
+}
+renderLedger();
+
+$("clearHistory").onclick = () => {
+  if(!confirm("Xoá toàn bộ lịch sử chi phí đã lưu?")) return;
+  costHistory = [];
+  saveHistory();
+  renderLedger();
+};
 
 /* ============ gọi API ============ */
 async function generate(){
@@ -430,8 +674,8 @@ async function generate(){
 
   setBusy(true);
   try{
-    const blob = await fetchAudio(key, url, body);
-    play(blob);
+    const { blob, inTok, outTok } = await fetchAudio(key, url, body);
+    play(blob, { model, inTok, outTok });
   }catch(e){
     fail("Không thu được", e.message);
   }finally{
@@ -478,10 +722,13 @@ async function previewVoice(voice, btn){
   btn.disabled = true;
   btn.textContent = "…";
   try{
-    const { url, body } = buildRequest($("model").value, PREVIEW_SAMPLE, "single", voice, null, null, null);
-    const blob = await fetchAudio(key, url, body);
+    const model = $("model").value;
+    const { url, body } = buildRequest(model, PREVIEW_SAMPLE, "single", voice, null, null, null);
+    const { blob, inTok, outTok } = await fetchAudio(key, url, body);
     const blobUrl = URL.createObjectURL(blob);
     previewCache.set(cacheKey, blobUrl);
+    addHistoryEntry({ ts: Date.now(), model, label: `Nghe thử — ${voice}`, inTok, outTok,
+      costUsd: calcCost(model, inTok, outTok) });
     playPreview(blobUrl, btn);
   }catch(e){
     fail("Không nghe thử được", e.message);
@@ -499,16 +746,26 @@ function setBusy(b){
 
 /* ---- phát + lưu take ---- */
 let takeNo = 0;
-function play(blob){
+function play(blob, meta){
   const url = URL.createObjectURL(blob);
   $("player").src = url;
   applyPlaybackRate($("player"), speed);
   $("player").play().catch(()=>{});
   takeNo++;
   const name = `take-${String(takeNo).padStart(2,"0")}.wav`;
+  const voices = `${$("v1").value}${mode==="multi" ? " + "+$("v2").value : ""}`;
+
+  let costUsd = null;
+  if(meta){
+    costUsd = calcCost(meta.model, meta.inTok, meta.outTok);
+    addHistoryEntry({ ts: Date.now(), model: meta.model, label: `${name} — ${voices}`,
+      inTok: meta.inTok, outTok: meta.outTok, costUsd });
+  }
+
   const div = document.createElement("div");
   div.className = "take";
-  div.innerHTML = `<b>${name}</b><span>${$("v1").value}${mode==="multi" ? " + "+$("v2").value : ""}</span>
+  div.innerHTML = `<b>${name}</b><span>${voices}</span>
+    <span class="take-cost">${fmtVnd(costUsd)}</span>
     <a href="${url}" download="${name}">Tải ↓</a>`;
   $("takes").prepend(div);
 }
