@@ -75,6 +75,29 @@
     border-radius:999px;padding:4px 10px;font:500 11.5px/1.4 "IBM Plex Mono",monospace;cursor:pointer}
   .tag:hover{border-color:var(--vu);color:var(--vu)}
 
+  /* ---------- hướng dẫn dùng thẻ inline ---------- */
+  .help{border:1px solid var(--line);border-radius:8px;margin-top:12px;background:var(--console);overflow:hidden}
+  .help summary{cursor:pointer;padding:10px 12px;font:600 12.5px/1.3 "Be Vietnam Pro",sans-serif;
+    color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+  .help summary::-webkit-details-marker{display:none}
+  .help summary::before{content:"▸";color:var(--vu);font-size:11px;transition:transform .15s}
+  .help[open] summary::before{transform:rotate(90deg)}
+  .help[open] summary{color:var(--text);border-bottom:1px solid var(--line)}
+  .help-body{padding:12px 14px 14px}
+  .help-body p{margin:0 0 4px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+  .help-body p.intro{color:var(--text);margin-bottom:10px}
+  .help-h{font:600 12px/1.3 "Be Vietnam Pro",sans-serif!important;color:var(--text)!important;margin-top:14px!important}
+  .help-h:first-of-type{margin-top:0!important}
+  .help-example{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    padding:8px 10px;font:500 12px/1.7 "IBM Plex Mono",monospace;color:var(--muted);
+    white-space:pre-wrap;margin:4px 0 0;overflow-x:auto}
+  .help-example .t{color:var(--vu);font-weight:600}
+  .help-list{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--muted)}
+  .help-list li{margin-bottom:6px}
+  .help-list li:last-child{margin-bottom:0}
+  .help-body code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--play)}
+
   /* ---------- giá đỡ giọng ---------- */
   .speaker{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--console)}
   .speaker .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -89,6 +112,21 @@
     display:flex;align-items:center;justify-content:center;transition:.15s}
   .preview-btn:hover{border-color:var(--play);box-shadow:0 0 0 3px #5fd3c422}
   .preview-btn:disabled{opacity:.5;cursor:progress}
+
+  /* ---------- tốc độ phát ---------- */
+  .speed{margin:16px 0}
+  .speed .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .speed .val{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--play);
+    background:var(--console);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;
+    background:var(--line);outline:none;margin:10px 0 4px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;
+    border-radius:50%;background:var(--play);cursor:pointer;border:2px solid var(--console);
+    box-shadow:0 0 0 1px var(--play)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--play);
+    cursor:pointer;border:2px solid var(--console);box-shadow:0 0 0 1px var(--play)}
+  .speed .ticks{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;
+    font-size:10px;color:var(--muted)}
 
   /* ---------- nút thu ---------- */
   .rec{width:100%;margin-top:6px;background:var(--vu);color:#171310;border:0;border-radius:8px;
@@ -152,6 +190,37 @@
         <textarea id="script" placeholder="Xin chào, đây là giọng nói được tạo bằng Gemini."></textarea>
         <div class="tags" id="tags"></div>
         <p class="hint">Thẻ trong ngoặc vuông điều khiển cách đọc từng đoạn. Dùng thẻ tiếng Anh cho kết quả tốt nhất, kể cả khi lời thoại là tiếng Việt.</p>
+
+        <details class="help">
+          <summary>Cách dùng thẻ inline trong lời thoại</summary>
+          <div class="help-body">
+            <p class="intro">Thẻ đặt ngay trước đoạn muốn nó tác động, model sẽ đọc đoạn sau thẻ theo kiểu đó cho tới khi gặp thẻ tiếp theo.</p>
+
+            <p class="help-h">Chuyển cảm xúc giữa câu:</p>
+            <pre class="help-example"><span class="t">[excited]</span> Tin tuyệt vời đây! Chúng ta thắng thầu rồi!
+<span class="t">[whispers]</span> Nhưng đừng nói cho ai biết vội nhé.</pre>
+
+            <p class="help-h">Chèn phản ứng phi ngôn ngữ:</p>
+            <pre class="help-example">Ừ thì... <span class="t">[sighs]</span> tôi cũng không biết phải làm sao nữa.
+Cậu kể chuyện đó <span class="t">[laughs]</span> buồn cười thật đấy!</pre>
+
+            <p class="help-h">Đổi tốc độ trong cùng một đoạn:</p>
+            <pre class="help-example"><span class="t">[very slow]</span> Hãy... hít... một hơi... thật sâu.
+<span class="t">[very fast]</span> Rồi bây giờ chạy nhanh lên kẻo trễ tàu!</pre>
+
+            <p class="help-h">Whisper một phần rồi hét phần sau (kiểu quảng cáo/kịch tính):</p>
+            <pre class="help-example"><span class="t">[whispers]</span> Có một bí mật ít người biết... <span class="t">[shouting]</span> GIẢM GIÁ 50% HÔM NAY!</pre>
+
+            <p class="help-h">Vài điểm cần nhớ để nó hoạt động tốt:</p>
+            <ul class="help-list">
+              <li>Lời thoại tiếng Việt vẫn dùng thẻ tiếng Anh — Google khuyến nghị vậy, thẻ tiếng Việt hay bị đọc thành chữ.</li>
+              <li>Thẻ nằm trong ngoặc vuông, viết thường, không có dấu chấm. Đúng: <code>[laughs]</code>. Sai: <code>[Cười]</code>, <code>(laughs)</code>.</li>
+              <li>Không có danh sách cố định — <code>[laughs]</code>, <code>[whispers]</code>, <code>[sighs]</code>, <code>[gasp]</code>, <code>[cough]</code>, <code>[giggles]</code>, <code>[excited]</code>, <code>[tired]</code>, <code>[serious]</code>, <code>[sarcastic]</code>... đều chạy, và bạn cứ thử thẻ sáng tạo như <code>[like a cartoon dog]</code> hay <code>[reluctantly]</code>, model diễn theo được.</li>
+              <li>Đừng nhồi quá dày — một hai thẻ mỗi đoạn là đủ; rải khắp nơi sẽ khiến giọng giật cục, kém tự nhiên.</li>
+              <li>Kết hợp với ô "chỉ đạo diễn xuất" cho kết quả mạnh nhất: ô đó đặt tông chung cho cả bài, thẻ chỉnh từng điểm nhấn cụ thể.</li>
+            </ul>
+          </div>
+        </details>
       </div>
 
       <div id="err"></div>
@@ -170,6 +239,16 @@
 
       <label class="label">Giọng</label>
       <div id="speakers"></div>
+
+      <div class="speed">
+        <div class="head">
+          <label class="label" for="speed" style="margin:0">Tốc độ đọc</label>
+          <span class="val" id="speedVal">1.00×</span>
+        </div>
+        <input type="range" id="speed" min="0.5" max="2" step="0.05" value="1">
+        <div class="ticks"><span>0.5×</span><span>1×</span><span>1.5×</span><span>2×</span></div>
+        <p class="hint">Chỉnh nhanh/chậm khi phát lại — cao độ giọng được giữ nguyên, không bị méo hay lên giọng the thé.</p>
+      </div>
 
       <button class="rec" id="go"><span class="lamp" style="background:#171310"></span> Thu giọng</button>
 
@@ -272,6 +351,22 @@ function pcmToWav(pcm, rate=24000, channels=1){
 }
 const b64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 
+/* ============ tốc độ phát — giữ nguyên cao độ, không méo tiếng ============ */
+let speed = 1;
+function applyPlaybackRate(el, rate){
+  el.playbackRate = rate;
+  el.preservesPitch = true;         // Chrome/Firefox
+  el.mozPreservesPitch = true;      // Firefox (tiền tố cũ)
+  el.webkitPreservesPitch = true;   // Safari
+}
+$("speed").oninput = () => {
+  speed = parseFloat($("speed").value);
+  $("speedVal").textContent = speed.toFixed(2) + "×";
+  applyPlaybackRate($("player"), speed);
+  if(previewAudio) applyPlaybackRate(previewAudio, speed);
+};
+applyPlaybackRate($("player"), speed);
+
 /* ---- tìm khối audio trong JSON trả về (đúng cho cả 2 kiểu endpoint) ---- */
 function findAudio(node){
   if(!node || typeof node !== "object") return null;
@@ -356,6 +451,7 @@ function resetPreviewBtn(btn){
 }
 function playPreview(url, btn){
   previewAudio = new Audio(url);
+  applyPlaybackRate(previewAudio, speed);
   previewBtnActive = btn;
   btn.textContent = "◼";
   previewAudio.onended = () => resetPreviewBtn(btn);
@@ -406,6 +502,7 @@ let takeNo = 0;
 function play(blob){
   const url = URL.createObjectURL(blob);
   $("player").src = url;
+  applyPlaybackRate($("player"), speed);
   $("player").play().catch(()=>{});
   takeNo++;
   const name = `take-${String(takeNo).padStart(2,"0")}.wav`;
